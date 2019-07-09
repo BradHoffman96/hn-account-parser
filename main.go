@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -36,10 +36,10 @@ var client = &http.Client{Timeout: 10 * time.Second}
 
 func main() {
 	account := Account{}
+
 	getAccount("jandrewrogers", &account)
 	getComments(account)
-
-	fmt.Println(len(comments))
+	writeToFile()
 }
 
 func getAccount(id string, target interface{}) error {
@@ -69,8 +69,21 @@ func getComments(account Account) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(comment.Text)
 
-		comments = append(comments, comment)
+		if strings.Contains(comment.Text, "spatial") {
+			comments = append(comments, comment)
+		}
+	}
+}
+
+func writeToFile() {
+	commentsJSON, err := json.Marshal(comments)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = ioutil.WriteFile("output.json", commentsJSON, 0644)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
