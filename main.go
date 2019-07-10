@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -40,7 +41,9 @@ func main() {
 	account := Account{}
 
 	getAccount("jandrewrogers", &account)
+
 	getComments(account)
+
 	writeToFile()
 
 	fmt.Printf("Total length: %d\n", len(comments))
@@ -58,26 +61,36 @@ func getAccount(id string, target interface{}) error {
 	return json.NewDecoder(resp.Body).Decode(target)
 }
 
-func getComments(account Account) {
-	for _, item := range account.Submitted {
-		url := []string{"https://hacker-news.firebaseio.com/v0/item/", strconv.Itoa(item), ".json?print=pretty"}
-
-		resp, err := client.Get(strings.Join(url, ""))
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer resp.Body.Close()
-
-		comment := Comment{}
-		err = json.NewDecoder(resp.Body).Decode(&comment)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if strings.Contains(string(comment.Text), "spatial") || strings.Contains(string(comment.Text), "database") {
-			comments = append(comments, comment)
-		}
+func getComment(url string, wg *sync.WaitGroup) {
+	resp, err := client.Get(url)
+	if err != nil {
+		log.Fatal(err)
 	}
+	defer resp.Body.Close()
+
+	comment := Comment{}
+	err = json.NewDecoder(resp.Body).Decode(&comment)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if strings.Contains(string(comment.Text), "spatial") || strings.Contains(string(comment.Text), "database") {
+		comments = append(comments, comment)
+	}
+
+	wg.Done()
+}
+
+func getComments(account Account) {
+	var wg sync.WaitGroup
+
+	for _, item := range account.Submitted {
+		wg.Add(1)
+		url := []string{"https://hacker-news.firebaseio.com/v0/item/", strconv.Itoa(item), ".json?print=pretty"}
+		go getComment(strings.Join(url, ""), &wg)
+	}
+
+	wg.Wait()
 }
 
 func writeToFile() {
