@@ -85,7 +85,13 @@ func writeToFile() {
 
 	commentsJSON = []byte(strings.Replace(string(commentsJSON), "&#x27;", "'", -1))
 
-	err = ioutil.WriteFile("output.json", commentsJSON, 0644)
+	var prettyJSON bytes.Buffer
+	err = json.Indent(&prettyJSON, commentsJSON, "", "\t")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = ioutil.WriteFile("output.json", prettyJSON.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
