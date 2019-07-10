@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -91,6 +92,10 @@ func getComments(account Account) {
 	}
 
 	wg.Wait()
+
+	sort.Slice(comments, func(i, j int) bool {
+		return comments[i].ID < comments[j].ID
+	})
 }
 
 func writeToFile() {
