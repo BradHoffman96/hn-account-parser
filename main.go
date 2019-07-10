@@ -104,7 +104,11 @@ func writeToFile() {
 		log.Fatal(err)
 	}
 
-	commentsJSON = []byte(strings.Replace(strings.Replace(string(commentsJSON), "&#x27;", "'", -1), "&#38;", "&", -1))
+	var commentsString = strings.Replace(string(commentsJSON), "&#x27;", "'", -1)
+	commentsString = strings.Replace(commentsString, "&#38;", "&", -1)
+	commentsString = strings.Replace(commentsString, "&#x2F;", "/", -1)
+
+	commentsJSON = []byte(commentsString)
 
 	var prettyJSON bytes.Buffer
 	err = json.Indent(&prettyJSON, commentsJSON, "", "\t")
