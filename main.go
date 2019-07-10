@@ -106,6 +106,8 @@ func writeToFile() {
 
 	var commentsString = strings.Replace(string(commentsJSON), "&#x27;", "'", -1)
 	commentsString = strings.Replace(commentsString, "&#38;", "&", -1)
+	commentsString = strings.Replace(commentsString, "&amp;", "&", -1)
+	commentsString = strings.Replace(commentsString, "&quot;", "'", -1)
 	commentsString = strings.Replace(commentsString, "&#x2F;", "/", -1)
 
 	commentsJSON = []byte(commentsString)
