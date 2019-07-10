@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -21,14 +22,14 @@ type Account struct {
 
 //Comment struct for HN
 type Comment struct {
-	ID     int    `json:"id"`
-	By     string `json:"by"`
-	Type   string `json:"type"`
-	Time   int    `json:"time"`
-	Text   string `json:"text"`
-	Parent int    `json:"parent"`
-	Kids   []int  `json:"kids"`
-	URL    string `json:"url"`
+	ID     int             `json:"id"`
+	By     string          `json:"by"`
+	Type   string          `json:"type"`
+	Time   int             `json:"time"`
+	Text   json.RawMessage `json:"text"`
+	Parent int             `json:"parent"`
+	Kids   []int           `json:"kids"`
+	URL    string          `json:"url"`
 }
 
 var comments []Comment
@@ -70,20 +71,30 @@ func getComments(account Account) {
 			log.Fatal(err)
 		}
 
-		if strings.Contains(comment.Text, "spatial") {
+		if strings.Contains(string(comment.Text), "spatial") {
 			comments = append(comments, comment)
 		}
 	}
 }
 
 func writeToFile() {
-	commentsJSON, err := json.Marshal(comments)
+	commentsJSON, err := JSONMarshal(comments)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	commentsJSON = []byte(strings.Replace(string(commentsJSON), "&#x27;", "'", -1))
 
 	err = ioutil.WriteFile("output.json", commentsJSON, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func JSONMarshal(t interface{}) ([]byte, error) {
+	buffer := &bytes.Buffer{}
+	encoder := json.NewEncoder(buffer)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(t)
+	return buffer.Bytes(), err
 }
