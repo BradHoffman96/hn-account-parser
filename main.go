@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -41,6 +42,8 @@ func main() {
 	getAccount("jandrewrogers", &account)
 	getComments(account)
 	writeToFile()
+
+	fmt.Printf("Total length: %d\n", len(comments))
 }
 
 func getAccount(id string, target interface{}) error {
@@ -71,7 +74,7 @@ func getComments(account Account) {
 			log.Fatal(err)
 		}
 
-		if strings.Contains(string(comment.Text), "spatial") {
+		if strings.Contains(string(comment.Text), "spatial") || strings.Contains(string(comment.Text), "database") {
 			comments = append(comments, comment)
 		}
 	}
@@ -83,7 +86,7 @@ func writeToFile() {
 		log.Fatal(err)
 	}
 
-	commentsJSON = []byte(strings.Replace(string(commentsJSON), "&#x27;", "'", -1))
+	commentsJSON = []byte(strings.Replace(strings.Replace(string(commentsJSON), "&#x27;", "'", -1), "&#38;", "&", -1))
 
 	var prettyJSON bytes.Buffer
 	err = json.Indent(&prettyJSON, commentsJSON, "", "\t")
