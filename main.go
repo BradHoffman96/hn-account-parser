@@ -75,7 +75,7 @@ func getComment(url string, wg *sync.WaitGroup) {
 		log.Fatal(err)
 	}
 
-	if strings.Contains(string(comment.Text), "spatial") || strings.Contains(string(comment.Text), "database") {
+	if strings.Contains(string(comment.Text), "Rust") {
 		comments = append(comments, comment)
 	}
 
@@ -118,7 +118,7 @@ func writeToFile() {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile("output.json", prettyJSON.Bytes(), 0644)
+	err = ioutil.WriteFile("output_rust.json", prettyJSON.Bytes(), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
